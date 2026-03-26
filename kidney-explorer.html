@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kidney Explorer — Junior Nephrology Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #22263a;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f2ff;
+  --muted: #8890b0;
+  --accent: #5b8cff;
+  --accent2: #ff6b9d;
+  --accent3: #43dfb4;
+  --accent4: #ffd166;
+  --success: #43dfb4;
+  --danger: #ff6b9d;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* animated bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 10%, rgba(91,140,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 300px at 80% 80%, rgba(67,223,180,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 60% 30%, rgba(255,107,157,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapper { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+/* header */
+.header { text-align: center; margin-bottom: 2rem; }
+.lab-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(91,140,255,0.12);
+  border: 1px solid rgba(91,140,255,0.3);
+  border-radius: 30px; padding: 6px 16px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 14px;
+}
+.lab-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+h1 { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px; }
+h1 span { color: var(--accent); }
+.tagline { color: var(--muted); font-size: 15px; margin-bottom: 1.2rem; }
+
+/* XP */
+.xp-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; max-width: 360px; margin: 0 auto; }
+.xp-icon { font-size: 18px; }
+.xp-info { flex: 1; }
+.xp-level { font-size: 12px; font-weight: 700; color: var(--accent4); text-transform: uppercase; letter-spacing: 0.06em; }
+.xp-track { height: 6px; background: var(--surface2); border-radius: 10px; margin-top: 4px; overflow: hidden; }
+.xp-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--accent3)); transition: width 0.6s ease; }
+.xp-count { font-size: 12px; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+/* nav */
+.nav { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 1.5rem 0; }
+.nav-btn {
+  padding: 10px 6px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--muted); font-family: 'Nunito', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; text-align: center;
+}
+.nav-btn:hover { border-color: rgba(91,140,255,0.4); color: var(--text); background: var(--surface2); }
+.nav-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.nav-btn .nav-icon { display: block; font-size: 18px; margin-bottom: 4px; }
+
+/* sections */
+.section { display: none; animation: fadeIn 0.3s ease; }
+.section.visible { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ===== ANATOMY ===== */
+.anatomy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.part-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 10px;
+  cursor: pointer; text-align: center; transition: all 0.2s;
+  color: var(--text);
+}
+.part-btn:hover { border-color: rgba(91,140,255,0.5); background: var(--surface2); transform: translateY(-2px); }
+.part-btn.active { border-color: var(--accent); background: rgba(91,140,255,0.12); }
+.part-btn .p-icon { font-size: 26px; margin-bottom: 6px; }
+.part-btn .p-name { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+.part-btn .p-hint { font-size: 11px; color: var(--muted); }
+
+.detail-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem;
+  min-height: 100px; transition: all 0.3s;
+}
+.detail-panel .dp-title { font-size: 17px; font-weight: 800; margin-bottom: 8px; color: var(--accent); }
+.detail-panel .dp-body { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
+.detail-panel .dp-wow {
+  font-size: 13px; color: var(--accent3);
+  background: rgba(67,223,180,0.08); border-left: 3px solid var(--accent3);
+  border-radius: 0 8px 8px 0; padding: 8px 12px; line-height: 1.5;
+}
+.detail-panel .placeholder { color: var(--muted); font-size: 14px; }
+
+/* ===== QUIZ ===== */
+.q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.q-progress { font-size: 13px; color: var(--muted); font-family: 'Space Mono', monospace; }
+.q-score-badge { background: rgba(255,209,102,0.12); border: 1px solid rgba(255,209,102,0.3); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 700; color: var(--accent4); }
+.q-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+.q-text { font-size: 16px; font-weight: 700; line-height: 1.5; margin-bottom: 1.2rem; }
+.opts { display: grid; gap: 9px; }
+.opt {
+  padding: 12px 16px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface2);
+  color: var(--text); font-family: 'Nunito', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  text-align: left; transition: all 0.15s;
+}
+.opt:hover:not(:disabled) { border-color: rgba(91,140,255,0.5); background: rgba(91,140,255,0.08); }
+.opt.correct { background: rgba(67,223,180,0.12); border-color: var(--success); color: var(--success); }
+.opt.wrong { background: rgba(255,107,157,0.12); border-color: var(--danger); color: var(--danger); }
+.expl { margin-top: 12px; padding: 12px 14px; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); font-size: 13px; color: var(--muted); line-height: 1.65; }
+.next-btn {
+  margin-top: 12px; padding: 11px 24px; border-radius: var(--radius-sm);
+  background: var(--accent); border: none; color: #fff;
+  font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800;
+  cursor: pointer; transition: all 0.15s;
+}
+.next-btn:hover { background: #4a7aee; transform: translateY(-1px); }
+.score-card { text-align: center; padding: 2.5rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.score-big { font-size: 52px; font-weight: 900; color: var(--accent); }
+.score-sub { font-size: 16px; color: var(--muted); margin: 8px 0 20px; line-height: 1.5; }
+.restart-btn {
+  padding: 12px 28px; background: var(--accent2); border: none;
+  border-radius: var(--radius-sm); color: #fff; font-family: 'Nunito', sans-serif;
+  font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.15s;
+}
+.restart-btn:hover { transform: translateY(-2px); }
+
+/* ===== CASES ===== */
+.cases-list { display: grid; gap: 12px; }
+.case-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem; cursor: pointer;
+  transition: all 0.2s;
+}
+.case-card:hover { border-color: rgba(91,140,255,0.4); transform: translateY(-2px); }
+.case-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.case-title { font-size: 15px; font-weight: 800; }
+.diff-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.diff-badge.easy { background: rgba(67,223,180,0.15); color: var(--success); }
+.diff-badge.medium { background: rgba(255,209,102,0.15); color: var(--accent4); }
+.diff-badge.hard { background: rgba(255,107,157,0.15); color: var(--danger); }
+.case-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.case-arrow { color: var(--accent); font-size: 18px; margin-top: 8px; display: block; text-align: right; }
+
+.back-btn { background: none; border: none; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 1rem; }
+.back-btn:hover { color: var(--text); }
+.scenario-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 1rem; }
+.diag-q { font-size: 15px; font-weight: 800; margin-bottom: 12px; }
+.result-box { margin-top: 14px; padding: 14px; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.65; }
+.result-box.correct { background: rgba(67,223,180,0.1); border: 1px solid rgba(67,223,180,0.3); color: var(--success); }
+.result-box.wrong { background: rgba(255,107,157,0.1); border: 1px solid rgba(255,107,157,0.3); color: #ff9fc0; }
+
+/* ===== FACTS ===== */
+.facts-grid { display: grid; gap: 12px; }
+.fact-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem;
+  transition: all 0.2s;
+}
+.fact-card:hover { border-color: rgba(91,140,255,0.3); }
+.fact-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+.fact-body { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 8px; }
+.fact-amazing { font-size: 13px; color: var(--accent4); font-style: italic; }
+
+/* responsive */
+@media(max-width:480px) {
+  h1{font-size:26px} .nav{grid-template-columns:repeat(2,1fr)} .anatomy-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div class="lab-badge"><span class="dot"></span> Junior Nephrology Lab</div>
+    <h1>Kidney <span>Explorer</span></h1>
+    <p class="tagline">Learn how kidneys work — just like a real nephrologist</p>
+    <div class="xp-wrap">
+      <div class="xp-icon">⚗️</div>
+      <div class="xp-info">
+        <div class="xp-level" id="xpLevel">Level 1 — Intern</div>
+        <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+      </div>
+      <div class="xp-count" id="xpCount">0 XP</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="show('anatomy',this)"><span class="nav-icon">🫘</span>Anatomy</button>
+    <button class="nav-btn" onclick="show('quiz',this)"><span class="nav-icon">🧠</span>Quiz</button>
+    <button class="nav-btn" onclick="show('cases',this)"><span class="nav-icon">🩺</span>Cases</button>
+    <button class="nav-btn" onclick="show('facts',this)"><span class="nav-icon">💡</span>Facts</button>
+  </div>
+
+  <!-- ANATOMY -->
+  <div class="section visible" id="anatomy">
+    <div class="anatomy-grid" id="partGrid"></div>
+    <div class="detail-panel" id="partDetail"><p class="placeholder">Tap any part above to learn what it does →</p></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="section" id="quiz">
+    <div class="q-header">
+      <div class="q-progress" id="qProgress">Question 1 of 10</div>
+      <div class="q-score-badge" id="qScoreBadge">Score: 0</div>
+    </div>
+    <div id="quizArea"></div>
+  </div>
+
+  <!-- CASES -->
+  <div class="section" id="cases"><div id="caseArea"></div></div>
+
+  <!-- FACTS -->
+  <div class="section" id="facts"><div class="facts-grid" id="factsGrid"></div></div>
+</div>
+
+<script>
+var xp=0,seen=new Set();
+var levels=["Intern","Junior Doctor","Resident","Fellow","Nephrologist!"];
+function addXP(n){
+  xp=Math.min(xp+n,500);
+  var lvl=Math.min(Math.floor(xp/100),levels.length-1);
+  var pct=(xp%100);
+  document.getElementById('xpFill').style.width=pct+'%';
+  document.getElementById('xpLevel').textContent='Level '+(lvl+1)+' — '+levels[lvl];
+  document.getElementById('xpCount').textContent=xp+' XP';
+}
+
+function show(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.getElementById(id).classList.add('visible');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='quiz')renderQuiz();
+  if(id==='cases')renderCaseList();
+  if(id==='facts')renderFacts();
+}
+
+var parts=[
+  {icon:'🫘',name:'Kidney',hint:'The main organ',desc:'You have two kidneys, each about the size of your fist, sitting just below your ribs. Every single day they filter about 180 litres of blood — that\'s roughly 1,000 water bottles! Their job is to keep your blood perfectly clean and balanced.',wow:'Together, your kidneys filter your entire blood supply about 300 times every day.'},
+  {icon:'🔬',name:'Nephron',hint:'The tiny filter',desc:'Each kidney holds about one million microscopic units called nephrons. A nephron is the real worker — it filters blood, decides what the body keeps and what gets removed, and produces urine. You can\'t see one without a microscope!',wow:'If you stretched all your nephrons end to end, they\'d reach about 80 km!'},
+  {icon:'🌀',name:'Glomerulus',hint:'First filter stage',desc:'Deep inside each nephron is a tiny ball of blood vessels called the glomerulus. Blood is pushed through it under pressure, like squeezing juice through a sieve. Water, salts, and waste pass through — but big proteins and blood cells stay behind.',wow:'The glomerulus creates about 125 ml of filtered fluid every single minute!'},
+  {icon:'🪈',name:'Tubule',hint:'The recycling tube',desc:'After the glomerulus, filtered fluid travels down a long twisted tube called the tubule. Here, the body takes back 99% of the water, all the glucose, and important salts. Only waste and a tiny bit of water become urine. Clever recycling!',wow:'Urine can be 60 times more concentrated than blood because of the tubule\'s work.'},
+  {icon:'🏔️',name:'Cortex',hint:'Outer kidney layer',desc:'The outer layer of the kidney is called the cortex. This is where the glomeruli (the tiny filters) live. It\'s dark red because it receives a massive blood supply — about 25% of all the blood your heart pumps goes straight to the kidneys.',wow:'The cortex also produces EPO — a hormone that tells bone marrow to make red blood cells.'},
+  {icon:'🔺',name:'Medulla',hint:'Inner pyramid zone',desc:'The inner part of the kidney, shaped like striped pyramids, is called the medulla. Long loops of tubules here concentrate the urine using a clever counter-current system — an engineering trick to save as much water as possible for the body.',wow:'Animals like kangaroo rats have extra-long medullary loops to conserve every drop of water!'},
+  {icon:'🚰',name:'Ureter',hint:'Tube to the bladder',desc:'Once urine is made, it flows down a long tube called the ureter into the bladder. The ureter squeezes in waves (called peristalsis) to push urine along — the same movement your intestines use to push food through.',wow:'The ureter has a one-way valve where it meets the bladder to stop urine flowing back up.'},
+  {icon:'🫧',name:'Bladder',hint:'Urine storage tank',desc:'The bladder is a stretchy muscular bag that stores urine until you\'re ready to go. It can hold about 400–600 ml. Special nerves tell your brain when it\'s getting full. When you urinate, the bladder muscle squeezes to push everything out.',wow:'The lining of the bladder (transitional epithelium) can stretch like a balloon and then shrink back.'},
+];
+
+var selPart=null;
+var grid=document.getElementById('partGrid');
+parts.forEach((p,i)=>{
+  var d=document.createElement('div');
+  d.className='part-btn'; d.innerHTML=`<div class="p-icon">${p.icon}</div><div class="p-name">${p.name}</div><div class="p-hint">${p.hint}</div>`;
+  d.onclick=()=>{
+    document.querySelectorAll('.part-btn').forEach(b=>b.classList.remove('active'));
+    d.classList.add('active');
+    document.getElementById('partDetail').innerHTML=`<div class="dp-title">${p.name}</div><div class="dp-body">${p.desc}</div><div class="dp-wow">Did you know: ${p.wow}</div>`;
+    if(!seen.has('p'+i)){seen.add('p'+i);addXP(5);}
+  };
+  grid.appendChild(d);
+});
+
+// QUIZ
+var questions=[
+  {q:'How many kidneys does a healthy person have?',opts:['One','Two','Three','Four'],ans:1,exp:'Most people have two kidneys, one on each side of the spine. Interestingly, some people are born with just one kidney and live perfectly healthy lives!'},
+  {q:'What is the main job of the kidneys?',opts:['Pump blood around the body','Filter waste from blood','Digest food','Make insulin'],ans:1,exp:'The kidneys filter about 180 litres of blood every day, removing waste products like urea and creatinine, which then leave the body as urine.'},
+  {q:'What is the tiny filtering unit inside each kidney called?',opts:['Neuron','Nephron','Neutron','Nucleon'],ans:1,exp:'Each kidney contains about one million nephrons. These microscopic units do the actual filtering work, deciding what the body keeps and what becomes urine.'},
+  {q:'What hormone do the kidneys produce to help make red blood cells?',opts:['Insulin','Adrenaline','EPO (erythropoietin)','Cortisol'],ans:2,exp:'The kidneys produce EPO (erythropoietin), which signals bone marrow to make red blood cells. Some athletes have illegally used synthetic EPO to boost performance — that\'s called doping!'},
+  {q:'How much blood do the kidneys filter every day?',opts:['1 litre','10 litres','180 litres','1,000 litres'],ans:2,exp:'About 180 litres of blood passes through the kidneys each day. Almost all the water is reabsorbed — only 1-2 litres become urine.'},
+  {q:'What disease occurs when kidneys stop working properly?',opts:['Diabetes','Renal failure','Pneumonia','Arthritis'],ans:1,exp:'Renal failure (or kidney failure) is when the kidneys can\'t filter blood properly. Patients may need dialysis — a machine that cleans blood for them — or a kidney transplant.'},
+  {q:'What connects the kidney to the bladder?',opts:['Artery','Vein','Ureter','Urethra'],ans:2,exp:'The ureter is the tube carrying urine from kidney to bladder. You have one per kidney. The urethra is different — it carries urine from the bladder out of the body.'},
+  {q:'Why does urine sometimes appear very dark yellow?',opts:['You ate carrots','You are dehydrated','You have a cold','You ran very fast'],ans:1,exp:'Dark urine means you\'re dehydrated. Your body conserves water, making waste products more concentrated. Drinking more water usually turns urine pale yellow — which is healthy!'},
+  {q:'What percentage of filtered water do the kidneys reabsorb?',opts:['10%','50%','75%','99%'],ans:3,exp:'The kidneys reabsorb about 99% of water filtered by the glomerulus. This incredible recycling means only 1-2 litres of the 180 litres filtered each day becomes urine.'},
+  {q:'A doctor who specialises in kidney diseases is called a...?',opts:['Cardiologist','Neurologist','Nephrologist','Urologist'],ans:2,exp:'A nephrologist specialises in kidney diseases. The word comes from "nephros" — Greek for kidney. They treat kidney failure, kidney stones, and high blood pressure caused by kidney problems.'},
+];
+
+var qi=0,qs=0,answered=false;
+function renderQuiz(){
+  if(qi>=questions.length){
+    var pct=Math.round(qs/questions.length*100);
+    var msg=pct>=90?'Outstanding, future nephrologist!':pct>=70?'Great work — keep learning!':'Keep exploring and try again!';
+    document.getElementById('quizArea').innerHTML=`<div class="score-card"><div class="score-big">${pct}%</div><div class="score-sub">You got ${qs} out of ${questions.length} right!<br>${msg}</div><button class="restart-btn" onclick="restartQ()">Try again ↺</button></div>`;
+    return;
+  }
+  var q=questions[qi];
+  document.getElementById('qProgress').textContent=`Question ${qi+1} of ${questions.length}`;
+  document.getElementById('qScoreBadge').textContent=`Score: ${qs}`;
+  var html=`<div class="q-card"><div class="q-text">${q.q}</div><div class="opts">`;
+  q.opts.forEach((o,i)=>html+=`<button class="opt" id="o${i}" onclick="ansQ(${i})">${o}</button>`);
+  html+=`</div><div id="expl"></div></div>`;
+  document.getElementById('quizArea').innerHTML=html;
+  answered=false;
+}
+function ansQ(i){
+  if(answered)return; answered=true;
+  var q=questions[qi];
+  document.querySelectorAll('.opt').forEach(o=>o.disabled=true);
+  document.getElementById('o'+q.ans).classList.add('correct');
+  if(i!==q.ans) document.getElementById('o'+i).classList.add('wrong');
+  else{qs++;addXP(10);}
+  document.getElementById('expl').innerHTML=`<div class="expl">${q.exp}</div><button class="next-btn" onclick="nextQ()">${qi<questions.length-1?'Next question →':'See my score →'}</button>`;
+}
+function nextQ(){qi++;renderQuiz();}
+function restartQ(){qi=0;qs=0;renderQuiz();}
+
+// CASES
+var cases=[
+  {title:'The tired athlete',badge:'easy',level:'Easy',desc:'A 14-year-old runner is always exhausted and her urine is very dark.',scenario:'Maya is a 14-year-old cross-country runner. Her coach notices she\'s always tired and her performance has dropped. Her urine is dark brown. She drinks mostly sodas, not water. Lab tests show high creatinine levels and the kidneys are making very concentrated urine.',q:'What is the most likely problem?',opts:['Kidney infection','Dehydration stressing the kidneys','Kidney tumour','Diabetes'],ans:1,fb:'Correct! Dehydration is the most likely cause. When you don\'t drink enough water, the kidneys work extra hard to concentrate urine and conserve fluid. Dark urine, tiredness, and high creatinine are all classic signs. The treatment: drink more water! Nephrologists always ask about fluid intake first.'},
+  {title:'Swollen face mystery',badge:'medium',level:'Medium',desc:'A 9-year-old wakes up with a puffy face every morning.',scenario:'Liam, age 9, has had a puffy face every morning for 3 weeks. His ankles also swell. His urine appears foamy. Lab tests show very low protein in his blood (albumin 18 g/L, normal is 35-50) and large amounts of protein spilling into his urine.',q:'What condition does this sound like?',opts:['Urinary tract infection','Nephrotic syndrome','Kidney stones','High blood pressure'],ans:1,fb:'Well done! This is nephrotic syndrome — a condition where the kidney\'s filter (glomerulus) is leaky and lets protein escape into the urine. Low blood protein means fluid leaks into tissues, causing puffiness (oedema). Foamy urine is a key clue! This is one of the most common kidney diseases in children.'},
+  {title:'High blood pressure puzzle',badge:'medium',level:'Medium',desc:'A 45-year-old has uncontrolled blood pressure and one smaller kidney.',scenario:'Patient X, age 45, has had high blood pressure for years that doesn\'t respond to medication. An ultrasound shows one kidney is much smaller than the other. Blood tests show elevated creatinine. The smaller kidney appears to be getting less blood flow.',q:'What should the nephrologist suspect?',opts:['Kidney stone','Renal artery stenosis (narrowed kidney artery)','Bladder cancer','Kidney infection'],ans:1,fb:'Excellent! Renal artery stenosis — a narrowing of the artery supplying the kidney — reduces blood flow. The affected kidney "thinks" the body has low blood pressure and releases hormones to raise it, causing resistant hypertension. Treatment can include a tiny balloon (angioplasty) to open the narrowed artery.'},
+  {title:'Slow kidney decline',badge:'hard',level:'Hard',desc:'A diabetic patient\'s kidneys are slowly failing over 10 years.',scenario:'James has had type 2 diabetes for 10 years with poorly controlled blood sugar. His nephrologist notices his eGFR (kidney function score) has dropped from 90 to 35 over time. He has protein in his urine and high blood pressure. His kidneys are slowly scarring.',q:'What stage of kidney disease does eGFR 35 represent?',opts:['Stage 1 — normal','Stage 2 — mild','Stage 3 — moderate','Stage 5 — kidney failure'],ans:2,fb:'Correct! An eGFR of 35 is Stage 3 (moderate chronic kidney disease). Diabetic nephropathy is the most common cause of kidney failure worldwide. Nephrologists aim to slow progression by controlling blood sugar, blood pressure, and protein leakage. At stage 5 (eGFR below 15), dialysis or transplant is needed.'},
+];
+
+function renderCaseList(){
+  var html='<div class="cases-list">';
+  cases.forEach((c,i)=>html+=`<div class="case-card" onclick="openCase(${i})"><div class="case-top"><span class="case-title">${c.title}</span><span class="diff-badge ${c.badge}">${c.level}</span></div><div class="case-desc">${c.desc}</div><span class="case-arrow">→</span></div>`);
+  html+='</div>';
+  document.getElementById('caseArea').innerHTML=html;
+}
+
+function openCase(i){
+  var c=cases[i];
+  var caseId='case'+i;
+  var html=`<button class="back-btn" onclick="renderCaseList()">← all cases</button>
+    <div class="q-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:16px;font-weight:800">${c.title}</span>
+        <span class="diff-badge ${c.badge}">${c.level}</span>
+      </div>
+      <div class="scenario-box">${c.scenario}</div>
+      <div class="diag-q">${c.q}</div>
+      <div class="opts">`;
+  c.opts.forEach((o,j)=>html+=`<button class="opt" id="co${j}" onclick="diagnose(${i},${j})">${o}</button>`);
+  html+=`</div><div id="cResult"></div></div>`;
+  document.getElementById('caseArea').innerHTML=html;
+}
+
+function diagnose(ci,oi){
+  var c=cases[ci];
+  var correct=oi===c.ans;
+  document.querySelectorAll('.opt').forEach(o=>o.disabled=true);
+  document.getElementById('co'+c.ans).classList.add('correct');
+  if(!correct) document.getElementById('co'+oi).classList.add('wrong');
+  if(correct) addXP(20);
+  document.getElementById('cResult').innerHTML=`<div class="result-box ${correct?'correct':'wrong'}">${correct?'✓ Correct! ':'✗ Not quite — '}${c.fb}</div>`;
+}
+
+// FACTS
+var facts=[
+  {tag:'Filter power',body:'Each kidney is only about 10-12 cm long — roughly the size of a computer mouse — yet together they filter your entire blood supply every 5 minutes.',wow:'That\'s more blood filtered per gram of tissue than almost any other organ.'},
+  {tag:'Nephron count',body:'You\'re born with about 1 million nephrons per kidney. After age 40, you lose about 1% per year — but healthy kidneys have so much reserve that most people never notice.',wow:'Donating one kidney is safe because the remaining kidney grows slightly to compensate!'},
+  {tag:'Blood pressure',body:'The kidneys are the long-term masters of blood pressure. They control it by managing how much sodium and water stays in the body: more sodium = more fluid = higher pressure.',wow:'This system — called renin-angiotensin — is one of the most studied in all of medicine.'},
+  {tag:'Acid balance',body:'Your blood must stay between pH 7.35 and 7.45 — a tiny range. The kidneys continuously adjust acid and base molecules to keep this perfect. Being even slightly outside is life-threatening.',wow:'The lungs handle second-by-second adjustments; the kidneys handle the long-term balance.'},
+  {tag:'Kidney stones',body:'Stones form when minerals (usually calcium oxalate) crystallize in the urine. They can be as small as a grain of sand or as large as a golf ball. Passing one is famously among the most painful experiences possible.',wow:'Drinking plenty of water every day is the single best way to prevent kidney stones.'},
+  {tag:'Dialysis',body:'When kidneys fail, dialysis is a machine that does their job. Haemodialysis passes blood through a filter 3 times a week. A kidney transplant can fully restore normal life.',wow:'The first successful kidney transplant was performed in 1954 between identical twins in Boston, USA.'},
+  {tag:'Vitamin D',body:'The kidneys activate vitamin D — the form from sunlight is inactive until the kidneys chemically modify it. Active vitamin D is essential for strong bones and absorbing calcium.',wow:'Kidney failure patients often develop weak bones partly because this activation step is missing.'},
+  {tag:'eGFR test',body:'Nephrologists measure kidney function with eGFR (estimated glomerular filtration rate) — it estimates how many ml of blood is filtered per minute. Normal is 90+. Below 15 means kidney failure.',wow:'A single creatinine blood test, combined with age and sex, gives a surprisingly accurate eGFR reading.'},
+];
+
+function renderFacts(){
+  var g=document.getElementById('factsGrid');
+  g.innerHTML='';
+  facts.forEach(f=>{
+    var d=document.createElement('div'); d.className='fact-card';
+    d.innerHTML=`<div class="fact-tag">${f.tag}</div><div class="fact-body">${f.body}</div><div class="fact-amazing">Amazing: ${f.wow}</div>`;
+    g.appendChild(d);
+  });
+}
+</script>
+</body>
+</html>
